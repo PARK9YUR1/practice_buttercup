@@ -2,25 +2,12 @@
 
 import { Account } from '@/app/lib/definitions';
 // import { User } from '@/app/lib/definitions';
-
-import { useForm } from 'react-hook-form';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../ui/form';
 import * as z from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import GoogleSignInButton from '../GoogleSignInButton';
 import { createAccount } from '@/app/lib/actions';
 import { useFormState } from 'react-dom';
-import { createPool, sql } from '@vercel/postgres';
+import { sql } from '@vercel/postgres';
 
 import {
   CheckIcon,
@@ -30,42 +17,26 @@ import {
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
-// console.log({
-//   POSTGRES_URL: process.env.POSTGRES_URL,
-//   POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING
-// });
-
-// const FormSchema = z
-//   .object({
-//     nickname: z.string().min(1, 'Nickname is required').max(100),
-//     // email: z.string().min(1, 'Email is required').email('Invalid email'),
-//     email: z.string().min(1, 'Email is required'),
-//     password: z
-//       .string()
-//       .min(1, 'Password is required')
-//       .min(8, 'Password must have than 8 characters'),
-//     confirmPassword: z.string().min(1, 'Password confirmation is required'),
-//   })
-//   .refine((data) => data.password === data.confirmPassword, {
-//     path: ['confirmPassword'],
-//     message: 'Password do not match',
-//   });
-
 // export default function SignUpForm({ user }: { user: Account[] }) {
 export default function SignUpForm() {
-  // function checkEmail() {
-  //   alert('email체크');
-  // }
+  const initialState = { message: null, errors: {} };
+  const [state, dispatch] = useFormState(createAccount, initialState);
+
+  const [nickname, setNickname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password1, setPassword1] = useState("");
+  const [password2, setPassword2] = useState("");
 
   async function checkEmail(email:string) {
     alert(`이메일은 ${email}입니다.`);
     try {
       const ckEmail = await sql<Account>`
-        SELECT * FROM accounts WHERE email=${email}
+        SELECT * FROM accounts WHERE email='${email}'
       `;
-      // return ckEmail.rows[0];
-      // return ckEmail
-      // alert(`${ckEmail}`)
+
+      // const ckEmail = await sql<User>`
+      //   SELECT * FROM users WHERE email='${email}'
+      // `;
       console.log(ckEmail.rows[0])
     } catch (error) {
       console.log(error)
@@ -73,24 +44,6 @@ export default function SignUpForm() {
         message: 'DB Error: Failed to Create Account.'
       }
     }
-
-  // const checkEmail = async (email:string) => {
-  //   alert(`이메일은 ${email}입니다.`);
-  //   try {
-  //     // SELECT COUNT(*) as count FROM accounts WHERE Email = ${email}
-  //     const ckEmail = await sql<Account>`
-  //       SELECT * FROM accounts WHERE email=${email}
-  //     `;
-  //     // return ckEmail.rows[0];
-  //     // return ckEmail
-  //     // alert(`${ckEmail}`)
-  //     console.log(ckEmail.rows[0])
-  //   } catch (error) {
-  //     console.log(error)
-  //     return {
-  //       message: 'DB Error: Failed to Create Account.'
-  //     }
-  //   }
 
     // console.log('닉네임 체크')
     /*
@@ -105,22 +58,17 @@ export default function SignUpForm() {
     */
   }
   const checkNickname = async (nickname:string) => {
-    // console.log('닉네임 체크')
     alert(`닉네임은 ${nickname}입니다.`);
     try {
-      // SELECT COUNT(*) as count FROM accounts WHERE Email = ${email}
-      const ckNickname = await sql<Account>`
-        SELECT * FROM accounts WHERE nickname=${nickname}
+      const ckNickname = await sql`
+        SELECT * FROM accounts WHERE nickname='${nickname}'
       `;
-      // return ckEmail.rows[0];
-      // return ckEmail
-      // alert(`${ckEmail}`)
+      // const ckNickname = await sql`
+      //   SELECT * FROM users WHERE name='${nickname}'
+      // `;
       console.log(ckNickname.rows[0])
     } catch (error) {
       console.log(error)
-      // return {
-      //   message: 'DB Error: Failed to Create Account.'
-      // }
     }
 
   }
@@ -134,44 +82,6 @@ export default function SignUpForm() {
       return '비밀번호가 일치하지 않습니다.'
     }
   }
-
-
-  // const form = useForm<z.infer<typeof FormSchema>>({
-  //   resolver: zodResolver(FormSchema),
-  //   defaultValues: {
-  //     nickname: '',
-  //     email: '',
-  //     password: '',
-  //     confirmPassword: '',
-  //   },
-  // });
-
-  // const onSubmit = (values: z.infer<typeof FormSchema>) => {
-  //   console.log(values);
-  // };
-
-  const initialState = { message: null, errors: {} };
-  const [state, dispatch] = useFormState(createAccount, initialState);
-
-  const [nickname, setNickname] = useState("");
-  const [email, setEmail] = useState("");
-  const [password1, setPassword1] = useState("");
-  const [password2, setPassword2] = useState("");
-
-  // function isDuplicate(field, value) {
-  //   try {
-  //     await sql`
-  //       SELECT COUNT(*) as count FROM accounts WHERE ${field} = ${nickname}
-  //     `
-  //   } catch (error) {
-      
-  //     return {
-  //       message: 'DB Error: Failed to Create Account.'
-  //     }
-  //   }
-
-  //   console.log("Button clicked!");
-  // }
 
   const myStyle: React.CSSProperties = {
     color: 'red',
@@ -246,9 +156,7 @@ export default function SignUpForm() {
                 // required
               />
             <button type="button" onClick={() => checkEmail(email)}>중복확인(기능 x)</button>
-            {/*  */}
 
-            {/* <button type="button">중복확인(기능 x)</button> */}
             </div>
             <div id="customer-error" aria-live="polite" aria-atomic="true">
             {state.errors?.email &&

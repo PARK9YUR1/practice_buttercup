@@ -3,6 +3,7 @@ import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   pages: {
     signIn: '/login',
+    // signUp: '/signup',
   },
   callbacks: {
     // authorized : 페이지 액세스 권한 확인

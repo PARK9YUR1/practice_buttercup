@@ -6,6 +6,10 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
+import { Account } from '@/app/lib/definitions';
+
+
+const bcrypt = require('bcrypt');
 
 const FormSchema = z.object({
   id: z.string(),
@@ -19,16 +23,99 @@ const FormSchema = z.object({
     invalid_type_error: 'Please select an invoice status.',
   }),
   date: z.string(),
+
+  nickname: z.string().min(2, '닉네임을 입력해주세요').max(100),
+  // email: z.string().min(1, '이메일을 입력해주세요').email('유효하지 않은 이메일입니다.'),
+  email: z.string().min(1, '이메일을 입력해주세요'),
+  password: z.string()
+    .min(1, '비밀번호를 입력해주세요')
+    .min(8, '비밀번호는 8자 이상입니다'),
+  confirmpassword: z.string().min(1, '비밀번호를 다시 입력해주세요'),
 });
 
 export type State = {
   errors?: {
+    nickname?: string[],
+    email?: string[],
+    password?: string[],
+    confirmpassword?: string[],
+
     customerId?: string[];
     amount?: string[];
     status?: string[];
   };
   message?: string | null;
 };
+
+const CreateAccount = FormSchema.omit({ id: true });
+
+export async function createAccount(prevState: State, formData: FormData) {
+  const validatedFields = CreateAccount.safeParse({
+    nickname: formData.get('nickname'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+    confirmpassword: formData.get('confirmpassword')
+  })
+
+  // function isDuplicate() {
+  //   console.log("Button clicked!");
+  // }
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Missing Fields. Failed to Create Account.',
+    };
+  }
+
+  const { nickname, email, password, confirmpassword } = validatedFields.data;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  if (password === confirmpassword) {
+    try {
+      await sql`
+        INSERT INTO accounts (nickname, email, password)
+        VALUES (${nickname}, ${email}, ${hashedPassword})
+      `
+    } catch (error) {
+      
+      return {
+        message: 'DB Error: Failed to Create Account.'
+      }
+    }
+  } else {
+    console.log('비밀번호가 일치하지 않습니다.')
+  }
+
+    // Client-side Router Cache
+  // 경로 재검증 후 서버에서 새로운 데이터를 가져옴.
+  revalidatePath('/dashboard/');
+  // redirect
+  redirect('/dashboard/');
+}
+
+// const user = FormSchema.omit({ id: true })
+
+// export async function nicknameDuplicate(nickname:string) {
+//   // const { nickname } = user.parse({
+//   //   nickname: fo
+//   // })
+//   let isDuplicate;
+//   try {
+//     isDuplicate = await sql<Account>`
+//     SELECT * FROM accounts WHERE nickname=${nickname}
+//     `;
+//     console.log(isDuplicate)
+//   } catch(error) {
+//     console.log(error)
+//   }
+
+//   return isDuplicate
+// }
+
+// export async function emailDuplicate(params:type) {
+  
+// }
+
 
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
