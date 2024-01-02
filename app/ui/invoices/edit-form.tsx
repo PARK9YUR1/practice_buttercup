@@ -9,6 +9,8 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
+import { updateInvoice } from '@/app/lib/actions';
+import { useFormState } from 'react-dom';
 
 export default function EditInvoiceForm({
   invoice,
@@ -17,8 +19,14 @@ export default function EditInvoiceForm({
   invoice: InvoiceForm;
   customers: CustomerField[];
 }) {
+  const initialState = { message: null, errors: {} };
+  // bind를 사용해 id를 서버액션에 전달. 서버액션에 전달되는 모든 값이 인코딩 됨.
+  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+  const [state, dispatch] = useFormState(updateInvoiceWithId, initialState);
+
   return (
-    <form>
+    // <form action={updateInvoice(id)}> -> 작동 x -> <form action={updateInvoiceWithId}>
+    <form action={dispatch}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Customer Name */}
         <div className="mb-4">
