@@ -1,11 +1,10 @@
 'use client';
 
 import { Account } from '@/app/lib/definitions';
-// import { User } from '@/app/lib/definitions';
 import * as z from 'zod';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import { createAccount } from '@/app/lib/actions';
+import { createAccount, nicknameDuplicate, emailDuplicate } from '@/app/lib/actions';
 import { useFormState } from 'react-dom';
 import { sql } from '@vercel/postgres';
 
@@ -17,7 +16,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
-// export default function SignUpForm({ user }: { user: Account[] }) {
 export default function SignUpForm() {
   const initialState = { message: null, errors: {} };
   const [state, dispatch] = useFormState(createAccount, initialState);
@@ -28,50 +26,47 @@ export default function SignUpForm() {
   const [password2, setPassword2] = useState("");
 
   async function checkEmail(email:string) {
-    alert(`이메일은 ${email}입니다.`);
+    // alert(`이메일은 ${email}입니다.`);
+    let count;
     try {
-      const ckEmail = await sql<Account>`
-        SELECT * FROM accounts WHERE email='${email}'
-      `;
-
-      // const ckEmail = await sql<User>`
-      //   SELECT * FROM users WHERE email='${email}'
-      // `;
-      console.log(ckEmail.rows[0])
+      const isDuplicate = await emailDuplicate(email);
+      count = isDuplicate?.rowCount
     } catch (error) {
-      console.log(error)
-      return {
-        message: 'DB Error: Failed to Create Account.'
+      console.log(error);
+    }
+    if (email) {
+      if (count) {
+        alert('사용할 수 없는 이메일입니다.')
+      } else {
+        alert('사용 가능한 이메일입니다.')
       }
+    } else {
+      alert('이메일을 입력해주세요')
     }
-
-    // console.log('닉네임 체크')
-    /*
-    if () { // 중복아니면
-      alert(~~)
-      // 따로 로직은 필요 없을 듯 ?? 어차피 DB에서 중복 안 되게 막아놔서
-      // return 'Pass'
-    } else { // 중복이면
-      alert(~~)
-      return 'Fail'
-    }
-    */
   }
+
   const checkNickname = async (nickname:string) => {
-    alert(`닉네임은 ${nickname}입니다.`);
+    // alert(`닉네임은 ${nickname}입니다.`);
+    let count;
     try {
-      const ckNickname = await sql`
-        SELECT * FROM accounts WHERE nickname='${nickname}'
-      `;
-      // const ckNickname = await sql`
-      //   SELECT * FROM users WHERE name='${nickname}'
-      // `;
-      console.log(ckNickname.rows[0])
+      const isDuplicate = await nicknameDuplicate(nickname);
+      count = isDuplicate?.rowCount
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-
+    // console.log(count)
+    console.log(nickname)
+    if (nickname) {
+      if (count) {
+        alert('중복된 닉네임입니다.')
+      } else {
+        alert('사용 가능한 닉네임입니다.')
+      }
+    } else {
+      alert('닉네임을 입력해주세요')
+    }
   }
+
   const checkPw1 = (pw1:string) => {
     if (pw1 && pw1.length < 8) {
       return '비밀번호는 8자 이상입니다.'
@@ -119,7 +114,7 @@ export default function SignUpForm() {
             {/* <div onClick={checkNickname()}>중복확인(기능 x)</div> */}
             {/* <button type="button" onClick={checkNickname()}>중복확인(기능 x)</button> */}
             {/* <div onClick={checkNickname}>중복확인(기능 x)</div> */}
-            <button type="button" onClick={() => checkNickname(nickname)}>중복확인(기능 x)</button>
+            <button type="button" onClick={() => checkNickname(nickname)}>중복확인</button>
 
             {/* `SELECT COUNT(*) as count FROM users WHERE username = ?` */}
             </div>
@@ -155,7 +150,7 @@ export default function SignUpForm() {
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                 // required
               />
-            <button type="button" onClick={() => checkEmail(email)}>중복확인(기능 x)</button>
+            <button type="button" onClick={() => checkEmail(email)}>중복확인</button>
 
             </div>
             <div id="customer-error" aria-live="polite" aria-atomic="true">
@@ -190,14 +185,14 @@ export default function SignUpForm() {
               />
             </div>
             <div style={myStyle}>{checkPw1(password1)}</div>
-            {/* <div id="customer-error" aria-live="polite" aria-atomic="true">
+            <div id="customer-error" aria-live="polite" aria-atomic="true">
             {state.errors?.password &&
               state.errors.password.map((error: string) => (
                 <p style={myStyle} className="mt-2 text-sm text-red-500" key={error}>
                   {error}
                 </p>
               ))}
-          </div> */}
+          </div>
           </div>
         </div>
 
@@ -223,14 +218,14 @@ export default function SignUpForm() {
             </div>
             <div style={myStyle}>{checkPw2(password1, password2)}</div>
 
-            {/* <div id="customer-error" aria-live="polite" aria-atomic="true">
+            <div id="customer-error" aria-live="polite" aria-atomic="true">
             {state.errors?.confirmpassword &&
               state.errors.confirmpassword.map((error: string) => (
                 <p style={myStyle} className="mt-2 text-sm text-red-500" key={error}>
                   {error}
                 </p>
               ))}
-          </div> */}
+          </div>
           </div>
         </div>
 

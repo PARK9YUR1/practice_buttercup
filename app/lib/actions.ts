@@ -93,28 +93,34 @@ export async function createAccount(prevState: State, formData: FormData) {
   redirect('/dashboard/');
 }
 
-// const user = FormSchema.omit({ id: true })
 
-// export async function nicknameDuplicate(nickname:string) {
-//   // const { nickname } = user.parse({
-//   //   nickname: fo
-//   // })
-//   let isDuplicate;
-//   try {
-//     isDuplicate = await sql<Account>`
-//     SELECT * FROM accounts WHERE nickname=${nickname}
-//     `;
-//     console.log(isDuplicate)
-//   } catch(error) {
-//     console.log(error)
-//   }
+export async function nicknameDuplicate(nickname:string) {
+  let isDuplicate;
+  try {
+    isDuplicate = await sql<Account>`
+    SELECT * FROM accounts WHERE nickname=${nickname}
+    `;
+    // console.log(isDuplicate)
+  } catch(error) {
+    console.log(error)
+  }
 
-//   return isDuplicate
-// }
+  return isDuplicate
+}
 
-// export async function emailDuplicate(params:type) {
-  
-// }
+export async function emailDuplicate(email:string) {
+  let isDuplicate;
+  try {
+    isDuplicate = await sql<Account>`
+    SELECT * FROM accounts WHERE email=${email}
+    `;
+    // console.log(isDuplicate)
+  } catch(error) {
+    console.log(error)
+  }
+
+  return isDuplicate
+}
 
 
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
